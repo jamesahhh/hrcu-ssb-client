@@ -16,8 +16,6 @@ const url = process.env.API
 checkFor(process.env.IN)
 checkFor(process.env.OUT)
 
-soapRequest([], '')
-
 var watcher = watch(process.env.WATCH_DIRECTORY, {
     awaitWriteFinish: {
         stabilityThreshold: 1500,
