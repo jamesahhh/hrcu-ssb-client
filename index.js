@@ -5,7 +5,6 @@ const { watch } = require('chokidar')
 const { constants, readFileSync, writeFile } = require('fs')
 const soap = require('soap')
 const dotenv = require('dotenv')
-const { request } = require('http')
 
 dotenv.config()
 
@@ -16,7 +15,7 @@ const url = process.env.API
 checkFor(process.env.IN)
 checkFor(process.env.OUT)
 
-var watcher = watch(process.env.WATCH_DIRECTORY, {
+var watcher = watch(process.env.IN, {
     awaitWriteFinish: {
         stabilityThreshold: 1500,
         pollInterval: 100,
@@ -40,7 +39,6 @@ async function checkFor(path) {
     try {
         access(path, constants.R_OK | constants.W_OK)
     } catch (e) {
-        log(e)
         await createDirectory(path)
         log(`Created ${path}`)
     }
@@ -59,23 +57,20 @@ async function removeFile(path) {
 }
 
 function soapRequest(array, ext) {
-    var options = {
-        endpoint: process.env.API,
-    }
     var requestArgs = decorateArgs(array)
-    soap.createClient(url, options, function (err, client) {
+    soap.createClient(url, function (err, client) {
         clientSwitch(client, requestArgs, ext)
     })
 }
 
 function clientSwitch(client, requestArgs, ext) {
-    if (requestArgs.method == 'BusinessNumber') {
-        client.ValidateBusinessNumber(requestArgs, function (result) {
-            writeToFile(JSON.stringify(result))
+    if ('BusinessNumber' in requestArgs) {
+        client.ValidateBusinessNumber(requestArgs, function (err, result) {
+            writeToFile(JSON.stringify(result, null, 4), ext)
         })
     } else {
-        client.ValidateReferenceNumber(requestArgs, function (result) {
-            writeToFile(JSON.stringify(result))
+        client.VerifyReferenceNumber(requestArgs, function (err, result) {
+            writeToFile(JSON.stringify(result), ext)
         })
     }
 }
@@ -94,13 +89,13 @@ function decorateArgs(array) {
     var args = {
         method: array[0],
     }
-    switch (args.method) {
+    switch (array[0]) {
         case 'BusinessNumber': {
-            args.BusinessNumber = args[1]
+            args.BusinessNumber = array[1]
             break
         }
-        case 'BusinessNumber': {
-            args.ReferenceNumber = args[1]
+        case 'ReferenceNumber': {
+            args.ReferenceNumber = array[1]
             break
         }
         default:
