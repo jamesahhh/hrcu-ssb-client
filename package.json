@@ -4,6 +4,8 @@
     "description": "Node Client for SSB Web Service",
     "main": "index.js",
     "scripts": {
+        "install": "node install.js",
+        "uninstall": "node uninstall.js",
         "start": "node index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
