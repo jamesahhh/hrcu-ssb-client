@@ -6,16 +6,16 @@ const { constants, readFileSync, writeFile } = require('fs')
 const soap = require('soap')
 const dotenv = require('dotenv')
 
-dotenv.config()
+dotenv.config({ path: './ssb.env'})
 
 const log = console.log.bind(console)
 
 const url = process.env.API
 
-checkFor(process.env.IN)
-checkFor(process.env.OUT)
+checkFor(process.env.OUT_LOCATION)
+checkFor(process.env.IN_LOCATION)
 
-var watcher = watch(process.env.IN, {
+var watcher = watch(process.env.IN_LOCATION, {
     awaitWriteFinish: {
         stabilityThreshold: 1500,
         pollInterval: 100,
@@ -37,9 +37,9 @@ function fileOps(path) {
 
 async function checkFor(path) {
     try {
-        access(path, constants.R_OK | constants.W_OK)
-    } catch (e) {
-        await createDirectory(path)
+        await access(path, constants.R_OK | constants.W_OK)
+    } catch (error){
+        createDirectory(path)
         log(`Created ${path}`)
     }
 }
@@ -64,22 +64,21 @@ function soapRequest(array, ext) {
 }
 
 function clientSwitch(client, requestArgs, ext) {
-    if ('BusinessNumber' in requestArgs) {
+    if (requestArgs.method == 'ValidateBusinessNumber') {
         client.ValidateBusinessNumber(requestArgs, function (err, result) {
             writeToFile(JSON.stringify(result, null, 4), ext)
         })
     } else {
         client.VerifyReferenceNumber(requestArgs, function (err, result) {
-            writeToFile(JSON.stringify(result), ext)
+            writeToFile(JSON.stringify(result, null, 4), ext)
         })
     }
 }
 
 function writeToFile(content, ext) {
-    writeFile(`${process.env.OUT}/${ext}`, content, (err) => {
+    writeFile(`${process.env.OUT_LOCATION}/${ext}`, content, (err) => {
         if (err) {
             console.error(err)
-            return
         }
         log(`File ${ext} created in ${process.env.OUT}`)
     })
@@ -90,11 +89,11 @@ function decorateArgs(array) {
         method: array[0],
     }
     switch (array[0]) {
-        case 'BusinessNumber': {
+        case 'ValidateBusinessNumber': {
             args.BusinessNumber = array[1]
             break
         }
-        case 'ReferenceNumber': {
+        case 'ValidateReferenceNumber': {
             args.ReferenceNumber = array[1]
             break
         }
