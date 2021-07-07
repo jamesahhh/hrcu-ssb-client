@@ -80,7 +80,7 @@ function writeToFile(content, ext) {
         if (err) {
             console.error(err)
         }
-        log(`File ${ext} created in ${process.env.OUT}`)
+        log(`File ${ext} created in ${process.env.OUT_LOCATION}`)
     })
 }
 
