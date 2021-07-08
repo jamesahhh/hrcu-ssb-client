@@ -80,7 +80,7 @@ function writeToFile(content, ext) {
         if (err) {
             console.error(err)
         }
-        log(`File ${ext} created in ${process.env.OUT_LOCATION}`)
+        log(`File ${ext} created in ${process.env.OUT_LOCATIONS}`)
     })
 }
 
@@ -93,7 +93,7 @@ function decorateArgs(array) {
             args.BusinessNumber = array[1]
             break
         }
-        case 'ValidateReferenceNumber': {
+        case 'VerifyReferenceNumber': {
             args.ReferenceNumber = array[1]
             break
         }
